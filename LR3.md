@@ -25,8 +25,6 @@
 
 В папке `Builds/WebGL/Build/` файлы получили расширения `.framework.js.gz`, `.wasm.gz` и `.data.gz`.
 
-<!-- Скриншот: папка Builds/WebGL/Build с .gz файлами -->
-
 ## 2. Конфигурация веб-сервера `nginx.conf`
 
 В корне проекта создан файл [`nginx.conf`](nginx.conf). Для каждого типа архивов Unity задан правильный MIME-тип и добавлен заголовок `Content-Encoding: gzip`:
@@ -75,8 +73,6 @@ HTTP/1.1 200 OK
 Content-Type: application/octet-stream
 Content-Encoding: gzip
 ```
-
-<!-- Скриншот: DevTools → Network → .wasm.gz → Headers с Content-Encoding: gzip -->
 
 Остановка контейнера:
 

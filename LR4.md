@@ -20,7 +20,9 @@
 
 Тестовые сборки подключают NUnit (`nunit.framework.dll`) и `UnityEngine/UnityEditor.TestRunner` и компилируются только при `UNITY_INCLUDE_TESTS`, поэтому не попадают в финальную сборку игры.
 
-<!-- Скриншот: Inspector GameAssembly / Tests.asmdef с Assembly Definition References -->
+![Tests.asmdef: includePlatforms Editor и ссылка на GameAssembly](docs/screenshots/lr4_tests_asmdef.png)
+
+![Папка Assets/Tests/PlayMode с тестами и PlayModeTests.asmdef](docs/screenshots/lr4_tests_folder.png)
 
 ## 2. Автоматические тесты
 
@@ -51,9 +53,16 @@
 * `OnTriggerEnter2D`, очередь `Simulation.eventQueue` и поле `animator` закрыты (`private`/`internal`), поэтому к ним тест обращается через Reflection;
 * перед каждым тестом и после него очередь событий очищается `Simulation.Clear()`.
 
-Результат локального запуска в Test Runner:
+Результат запуска (Unity Test Runner в контейнере `unityci/editor`, GitHub Actions):
 
-<!-- Скриншот: Test Runner — EditMode и PlayMode, все тесты зелёные -->
+| Тест | Режим | Результат |
+|---|---|---|
+| `PlayerTests.EditMode_PlayerTag_IsCorrect` | EditMode | ✅ Passed |
+| `PlayerHealthTests.PlayMode_PlayerTakesDamage_HealthDecreases` | PlayMode | ✅ Passed |
+| `VictoryZoneTests.PlayMode_PlayerEntersVictoryZone_SchedulesEvent` (**вариант 16**) | PlayMode | ✅ Passed |
+| `VictoryZoneTests.PlayMode_NonPlayerEntersVictoryZone_NoEventScheduled` (**вариант 16**) | PlayMode | ✅ Passed |
+
+Итог: **4/4 passed**.
 
 ## 3. Запуск тестов в GitHub Actions
 
@@ -64,7 +73,8 @@
 * устанавливает GameCI CLI `v0.1.72` и запускает тесты в контейнере `unityci/editor` сразу для `playmode` и `editmode` (`COMBINE_RESULTS`);
 * версия Unity задана явно: `--engineVersion=6000.5.10f1` (файл `ProjectVersion.txt` исключён `.gitignore`);
 * `--coverageEnabled=false` — без инструментирования кода, которое роняет Unity 6 в контейнере (SIGSEGV);
-* результаты сохраняются артефактом `test-results` (даже при падении тестов).
+* результаты сохраняются артефактом `test-results` (даже при падении тестов);
+* шаг `Test results summary` разбирает XML с результатами и выводит итог по каждому тесту в аннотации и Summary прогона.
 
 Задачи `mirror_repo` и `build_docker_image` теперь зависят от `needs: run_tests`:
 
@@ -81,17 +91,17 @@ sanity_check → run_tests → mirror_repo
 * `UNITY_EMAIL` — email аккаунта Unity;
 * `UNITY_PASSWORD` — пароль аккаунта Unity.
 
-<!-- Скриншот: список секретов репозитория -->
+Файл лицензии привязан к компьютеру, на котором активирован, поэтому на облачном раннере GameCI активирует редактор через `UNITY_EMAIL`/`UNITY_PASSWORD` (в логе — предупреждение «machine binding doesn't match»). Для аккаунта Unity задан вход по паролю, двухфакторная аутентификация отключена.
 
 ## 5. Проверка результатов
 
-* Во вкладке **Actions** задача `run_tests` зелёная, в логе видны результаты EditMode и PlayMode, доступен артефакт `test-results`.
+* Во вкладке **Actions** задача `run_tests` зелёная, все 4 теста (EditMode и PlayMode) прошли, доступен артефакт `test-results`. После тестов выполнились `mirror_repo` и `build_docker_image`.
 
-<!-- Скриншот: Actions — зелёный run_tests и лог тестов -->
+![Actions — зелёный пайплайн и результаты тестов](docs/screenshots/lr4_actions_green.png)
 
-* **Демонстрация защиты пайплайна:** в тест временно добавлено `Assert.AreEqual(1, 2)` — `run_tests` стал красным, а `mirror_repo` и `build_docker_image` не запустились. После этого тест возвращён в исправное состояние.
+* **Демонстрация защиты пайплайна:** в `PlayerHealthTests` временно добавлено `Assert.AreEqual(1, 2)`. Тест `PlayMode_PlayerTakesDamage_HealthDecreases` упал, `run_tests` стал красным, а `mirror_repo` и `build_docker_image` **не запустились** (пропущены). После этого тест возвращён в исправное состояние.
 
-<!-- Скриншот: Actions — красный run_tests, пропущенные задачи сборки -->
+![Actions — красный run_tests, задачи сборки пропущены](docs/screenshots/lr4_actions_red.png)
 
 ## Ответы на контрольные вопросы
 

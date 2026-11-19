@@ -24,9 +24,6 @@ public class PlayerHealthTests
 
         Assert.IsTrue(health.IsAlive, "Ошибка: персонаж должен быть жив на старте!");
 
-        // ВРЕМЕННО: намеренная ошибка для демонстрации защиты пайплайна
-        Assert.AreEqual(1, 2, "Демонстрация: тест намеренно сломан");
-
         // Имитируем получение урона: Health.Decrement() уменьшает HP на 1
         health.Decrement();
         Assert.IsTrue(health.IsAlive, "Ошибка: персонаж не должен погибнуть после одного урона!");

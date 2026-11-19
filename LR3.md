@@ -98,16 +98,23 @@ docker stop unity_compressed_container && docker rm unity_compressed_container
 
 ## 6. Отправка изменений на GitHub
 
-Изменения (`nginx.conf`, `Dockerfile`, `main.yml`, настройки сжатия) выполнены в ветке `LR3`, отправлены на GitHub и объединены с `main` через Pull Request.
+Изменения (`nginx.conf`, `Dockerfile`, `main.yml`, настройки сжатия) выполнены в ветке `LR3`, отправлены на GitHub и объединены с веткой `main`.
+
+![Файлы Dockerfile, nginx.conf и .github/workflows в репозитории](docs/screenshots/lr3_repo_files.png)
 
 ## 7. Проверка результатов
 
 * Во вкладке **Actions** все три задачи (`sanity_check`, `mirror_repo`, `build_docker_image`) завершились успешно.
-* Во вкладке **Packages** профиля появился пакет `platformer-game` с тегами `latest` и `sha` коммита.
 
-<!-- Скриншот: Actions — три зелёные задачи -->
+![Actions — три зелёные задачи](docs/screenshots/lr3_actions_green.png)
 
-<!-- Скриншот: Packages — platformer-game -->
+* Во вкладке **Packages** профиля появился пакет `platformer-game` (теги `latest` и `sha` коммита).
+
+![Packages — platformer-game](docs/screenshots/lr3_packages.png)
+
+* Код автоматически продублирован в резервный репозиторий `2d_platformer_backup`.
+
+![Резервный репозиторий с новыми коммитами](docs/screenshots/lr3_backup_repo.png)
 
 ## Ответы на контрольные вопросы
 

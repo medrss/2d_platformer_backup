@@ -1,4 +1,3 @@
-
 # Название автоматического процесса
 name: Unity 2D Platformer CI/CD
 
@@ -37,9 +36,59 @@ jobs:
           find Assets/ -name "*Controller.cs" -print
           find Assets/ -name "BuildManager.cs" -print
 
-  # ЗАДАЧА 2: Копирование в резервный репозиторий
+  # ЗАДАЧА 2 (ЛР №4): Автоматический запуск тестов Unity (EditMode + PlayMode)
+  run_tests:
+    needs: sanity_check # Тесты запускаются сразу после проверки структуры проекта
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true # Поддержка Git LFS, если в игре есть тяжелая графика
+
+      # Кэш папки Library, чтобы повторные прогоны тестов были быстрее
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Packages/packages-lock.json', 'Assets/**/*.asmdef') }}
+
+      # Официальный CLI GameCI с фиксированной версией
+      - name: Install GameCI CLI
+        run: |
+          curl -sL -o game-ci.tar.gz https://github.com/game-ci/cli/releases/download/v0.1.72/game-ci-linux-x64.tar.gz
+          tar xzf game-ci.tar.gz ./game-ci
+          echo "$PWD" >> $GITHUB_PATH
+
+      # Запуск тестов EditMode и PlayMode в контейнере unityci/editor.
+      # CLI вызывается напрямую (а не через game-ci/unity-test-runner@v4), т.к. экшен
+      # формирует флаг --no-coverageEnabled, которого CLI v0.1.72 не понимает.
+      # Coverage отключен: инструментирование кода роняет Unity 6 в контейнере (SIGSEGV, 139).
+      # Версия Unity указывается явно: ProjectVersion.txt исключен .gitignore.
+      - name: Run Unity Tests
+        run: |
+          game-ci test --docker --dockerShmSize=1025m \
+            --engine=unity --testPlatforms='playmode;editmode;COMBINE_RESULTS' \
+            --engineVersion=6000.5.10f1 --coverageEnabled=false \
+            --artifactsPath=artifacts --dockerIsolationMode=default \
+            --containerRegistryRepository=unityci/editor \
+            --containerRegistryImageVersion=3
+        env:
+          # Секреты лицензии Unity для активации редактора на раннере
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+
+      # Сохраняем результаты и логи тестов артефактами (даже при падении)
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: artifacts/
+
+  # ЗАДАЧА 3: Копирование в резервный репозиторий
   mirror_repo:
-    needs: sanity_check
+    needs: run_tests # Зеркалирование начнется только после успешных тестов
     if: github.repository == 'medrss/platformer-microgame-labs'
     runs-on: ubuntu-latest
     steps:
@@ -67,9 +116,10 @@ jobs:
           echo "=== Начало процесса зеркалирования ==="
           git push --force "https://x-access-token:${BACKUP_TOKEN}@github.com/medrss/2d_platformer_backup.git" main
           echo "=== Код успешно продублирован ==="
-  # ЗАДАЧА 3 (ЛР №3): Автоматическая сборка Docker-образа и публикация в GHCR
+
+  # ЗАДАЧА 4 (ЛР №3): Автоматическая сборка Docker-образа и публикация в GHCR
   build_docker_image:
-    needs: sanity_check
+    needs: run_tests # Docker собирается ТОЛЬКО если тесты прошли успешно
     runs-on: ubuntu-latest
 
     # Разрешаем этой задаче публиковать пакеты в GitHub Packages

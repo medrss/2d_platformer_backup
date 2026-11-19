@@ -59,6 +59,8 @@ docker run -d -p 8080:80 --name unity_compressed_container platformer-compressed
 
 Проверка заголовков через `curl -I`:
 
+![Проверка заголовков Content-Encoding: gzip у контейнера](docs/screenshots/lr3_curl_gzip_headers.png)
+
 ```
 --- game.framework.js.gz
 HTTP/1.1 200 OK

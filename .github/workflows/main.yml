@@ -78,6 +78,27 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
 
+      # Выводим результат каждого теста на страницу запуска (аннотации + Summary)
+      - name: Test results summary
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import glob, os, xml.etree.ElementTree as ET
+          rows = []
+          for f in glob.glob("artifacts/**/*.xml", recursive=True):
+              for tc in ET.parse(f).getroot().iter("test-case"):
+                  rows.append((tc.get("result"), tc.get("fullname"), tc.get("duration")))
+          passed = sum(r[0] == "Passed" for r in rows)
+          print(f"::notice title=Unity tests::{passed}/{len(rows)} passed")
+          for res, name, dur in rows:
+              level = "notice" if res == "Passed" else "error"
+              print(f"::{level} title={res}::{name} ({float(dur or 0):.2f}s)")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as s:
+              s.write(f"### Unity tests: {passed}/{len(rows)} passed\n\n| Result | Test | Time, s |\n|---|---|---|\n")
+              for res, name, dur in rows:
+                  s.write(f"| {'✅' if res == 'Passed' else '❌'} {res} | `{name}` | {float(dur or 0):.2f} |\n")
+          PY
+
       # Сохраняем результаты и логи тестов артефактами (даже при падении)
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4

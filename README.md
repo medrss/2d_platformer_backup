@@ -15,6 +15,7 @@
 | 3 | Контейнеризация веб-сервера в Docker и раздача сжатых файлов со стороны Nginx | [LR3.md](LR3.md) |
 | 4 | Автоматизация тестирования (Unity Test Runner) в CI/CD | [LR4.md](LR4.md) |
 | 5 | Автоматическая компиляция WebGL-игры в облаке и деплой на GitHub Pages | [LR5.md](LR5.md) |
+| 6 | Мониторинг пайплайна, Webhooks и Telegram-оповещения | [LR6.md](LR6.md) |
 
 Игра онлайн: https://medrss.github.io/platformer-microgame-labs/
 
@@ -24,6 +25,7 @@
 sanity_check → run_tests → build_game → build_docker_image (ghcr.io/medrss/platformer-game)
                          │            → deploy_to_pages   (GitHub Pages)
                          → mirror_repo
+                                    все задачи → notify (Telegram, if: always())
 ```
 
 Тест по варианту 16 (`PlayerEnteredVictoryZone`): [`Assets/Tests/PlayMode/VictoryZoneTests.cs`](Assets/Tests/PlayMode/VictoryZoneTests.cs)

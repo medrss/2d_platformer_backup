@@ -17,6 +17,8 @@ jobs:
       - name: Check Unity Directories
         run: |
           echo "=== Проверка наличия метаданных Unity ==="
+          # ВРЕМЕННО: заведомо ошибочная команда для демонстрации аварийного оповещения (ЛР №6)
+          ls NonExistentFolder
           if [ -d "ProjectSettings" ]; then
             echo "ProjectSettings найден."
           else

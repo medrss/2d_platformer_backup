@@ -69,7 +69,9 @@ WebGL build (23M): WebGL.data.unityweb  WebGL.framework.js.unityweb  WebGL.loade
 
 ![Файлы билда в gh-pages/Build](docs/screenshots/lr5_gh_pages_build.png)
 
-<!-- LR5_PAGES -->
+GitHub Pages включён один раз вручную: `Settings → Pages → Source: Deploy from a branch → gh-pages, / (root)`. После этого игра доступна по адресу **https://medrss.github.io/platformer-microgame-labs/** — загрузка проходит без ошибок распаковки (работает Decompression Fallback):
+
+![Игра на GitHub Pages — https://medrss.github.io/platformer-microgame-labs/](docs/screenshots/lr5_pages_game.png)
 
 ## 6. Docker-образ с настоящей игрой
 
